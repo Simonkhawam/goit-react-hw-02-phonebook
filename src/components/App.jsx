@@ -1,33 +1,50 @@
-import { Components } from 'react';
-import AddContactsToList from './AddContacts';
-class App extends Components {
+import { Component } from 'react';
+import { nanoid } from 'nanoid';
+import ContactList from './ContactList';
+import ContactForm from './ContactForm';
+import SearchBar from './SearchBar';
+import './App.css';
+class App extends Component {
   state = {
     contacts: [],
-    name: '',
+    searchFile: '',
+  };
+  addContact = newContact => {
+    const isExistingContact = this.state.contacts.some(
+      contact => contact.name === newContact.name
+    );
+    if (isExistingContact) {
+      alert(`${newContact.name} is already in contacts.`);
+    } else {
+      const contactWithId = { ...newContact, id: nanoid() };
+      this.setState(prevState => ({
+        contacts: [...prevState.contacts, contactWithId],
+      }));
+    }
+  };
+  deleteContact = Id => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== Id),
+    }));
+  };
+
+  handleSearchChange = event => {
+    this.setState({ searchFile: event.target.value });
   };
 
   render() {
+    const { contacts, searchFile } = this.state;
+    const filteredContact = contacts.filter(contact =>
+      contact.name.toLowerCase().includes(searchFile.toLowerCase())
+    );
     return (
-      <div>
-        <h1>Phonebook</h1>
-        <h2>Name</h2>
-        <input
-          type="text"
-          name="name"
-          pattern="^[a-zA-Z]+(([' -][a-zA-Z ])?[a-zA-Z]*)*$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          required
+      <div className="form">
+        <ContactForm addContact={this.addContact} className="test" />
+        <SearchBar onSearchChange={this.handleSearchChange} />
+        <ContactList
+          contacts={filteredContact}
+          deleteContact={this.deleteContact}
         />
-        <h2></h2>
-        <h2>Number</h2>
-        <input
-          type="tel"
-          name="number"
-          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-          required
-        />
-        <button type="submit">Add contact</button>
       </div>
     );
   }
